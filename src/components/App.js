@@ -1,16 +1,16 @@
-import React, { Component, useEffect, useState } from 'react'
-import './App.css'
-import Web3 from 'web3'
-import Navbar from './Navbar'
-import lrs from 'lrs'
+import React, { Component, useEffect, useState } from "react"
+import "./App.css"
+import Web3 from "web3"
+import Navbar from "./Navbar"
+import lrs from "lrs"
 
-const privateKeyToPublicKey = require('ethereum-private-key-to-public-key')
+const privateKeyToPublicKey = require("ethereum-private-key-to-public-key")
 
 const App = () => {
-  const [account, setAccount] = useState('')
+  const [account, setAccount] = useState("")
   const [ring, setRing] = useState([])
-  const [publicKey, setPublicKey] = useState('')
-  const [privateKey, setPrivateKey] = useState('')
+  const [publicKey, setPublicKey] = useState("")
+  const [privateKey, setPrivateKey] = useState("")
 
   useEffect(() => {
     loadWeb3()
@@ -27,7 +27,7 @@ const App = () => {
       window.web3 = new Web3(window.web3.currentProvider)
     } else {
       window.alert(
-        'Non-Ethereum browser detected. You should consider trying MetaMask!',
+        "Non-Ethereum browser detected. You should consider trying MetaMask!"
       )
     }
   }
@@ -49,7 +49,7 @@ const App = () => {
   const handleSubmit = (event) => {
     event.preventDefault()
     console.log(ring)
-    console.log(privateKeyToPublicKey(ring[0].privateKey).toString('hex'))
+    console.log(privateKeyToPublicKey(ring[0].privateKey).toString("hex"))
     console.log(`Private Key: ${privateKey}`)
     console.log(`Public Key: ${publicKey}`)
   }
@@ -60,7 +60,7 @@ const App = () => {
         <Navbar account={account} />
       </div>
 
-      <div style={{ marginTop: '100px', marginLeft: '20px' }}>
+      <div style={{ marginTop: "100px", marginLeft: "20px" }}>
         <form onSubmit={handleSubmit}>
           <label>
             Enter your private key:

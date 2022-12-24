@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import Web3 from 'web3'
-import UniversityForum from '../abis/UniversityForum.json'
+import React, { useState, useEffect } from "react"
+import Web3 from "web3"
+import UniversityForum from "../abis/UniversityForum.json"
+import Navbar from "./Navbar"
 
 const App2 = () => {
   // State variables to hold the forum messages and input value
   const [messages, setMessages] = useState([])
-  const [inputValue, setInputValue] = useState('')
+  const [inputValue, setInputValue] = useState("")
   const [forum, setForum] = useState(null)
   const [account, setAccount] = useState(null)
   const [messageCount, setMessageCount] = useState(0)
-  const [events, setEvents] = useState([])
-  const [newAdress, setNewAddress] = useState('')
+  // const [events, setEvents] = useState([]);
+  const [newAdress, setNewAddress] = useState("")
   const [isOwner, setIsOwner] = useState(false)
 
   const loadWeb3 = async () => {
-    console.log('in loadWeb3')
+    console.log("in loadWeb3")
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
       await window.ethereum.enable()
@@ -22,10 +23,10 @@ const App2 = () => {
       window.web3 = new Web3(window.web3.currentProvider)
     } else {
       window.alert(
-        'Non-Ethereum browser detected. You should consider trying MetaMask!',
+        "Non-Ethereum browser detected. You should consider trying MetaMask!"
       )
     }
-    console.log('end of loadWeb3')
+    console.log("end of loadWeb3")
   }
 
   const fetchMessages = async () => {
@@ -38,12 +39,13 @@ const App2 = () => {
         const message = await forum.methods.messages(i).call()
         messageList.push(message)
       }
+      if (messageList.length === 0) console.log("no messages yet")
       setMessages(messageList)
     }
   }
 
   const loadBlockchainData = async () => {
-    console.log('in loadBlockChainData')
+    console.log("in loadBlockChainData")
     const web3 = window.web3
     // Load account
     const accounts = await web3.eth.getAccounts()
@@ -53,7 +55,7 @@ const App2 = () => {
     if (networkData) {
       const forumInstance = await web3.eth.Contract(
         UniversityForum.abi,
-        networkData.address,
+        networkData.address
       )
       setForum(forumInstance)
       await console.log(forumInstance)
@@ -77,9 +79,9 @@ const App2 = () => {
       //   }
       // })
     } else {
-      window.alert('Forum contract not deployed to detected network.')
+      window.alert("Forum contract not deployed to detected network.")
     }
-    console.log('end of loadblockchaindata')
+    console.log("end of loadblockchaindata")
   }
 
   const checkIfOwner = async () => {
@@ -94,13 +96,13 @@ const App2 = () => {
       await loadWeb3()
       await loadBlockchainData()
       console.log(forum)
-      checkIfOwner()
+      // checkIfOwner();
     })()
   }, [])
 
-  // useEffect(() => {
-  //   fetchMessages()
-  // }, [forum])
+  useEffect(() => {
+    fetchMessages()
+  }, [forum])
 
   // Function to add a new message to the forum
   const addMessage = async () => {
@@ -108,14 +110,14 @@ const App2 = () => {
     if (inputValue) {
       // Call the addMessage function in the contract with the input value
       const response = await forum.methods
-        .addMessage('Test Type', inputValue)
+        .addMessage("Test Type", inputValue)
         .send({
           from: account,
         })
 
       if (response) {
         // Clear the input value
-        setInputValue('')
+        setInputValue("")
 
         // Fetch the updated list of messages
         fetchMessages()
@@ -128,7 +130,9 @@ const App2 = () => {
   // Render the forum messages and input form
   return (
     <div>
-      <h1>University Forum</h1>
+      <div>
+        <Navbar account={account} />
+      </div>
       <ul>
         {messages.length != 0
           ? messages.map((message) => (
@@ -136,7 +140,7 @@ const App2 = () => {
                 {message.author.toString()}: {message.content}
               </li>
             ))
-          : 'no message'}
+          : "no message"}
       </ul>
       <form>
         {!isOwner ? (
@@ -151,7 +155,7 @@ const App2 = () => {
             </label>
             <button type="button" onClick={addMessage}>
               Add Message
-            </button>{' '}
+            </button>{" "}
           </>
         ) : (
           <>
