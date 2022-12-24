@@ -13,8 +13,10 @@ const App2 = () => {
   // const [events, setEvents] = useState([]);
   const [newAdress, setNewAddress] = useState("")
   const [isOwner, setIsOwner] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const loadWeb3 = async () => {
+    setLoading(true)
     console.log("in loadWeb3")
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
@@ -30,6 +32,7 @@ const App2 = () => {
   }
 
   const fetchMessages = async () => {
+    setLoading(true)
     console.log(forum)
     if (forum != null) {
       const messageNum = await forum.methods.messageCount().call()
@@ -42,9 +45,11 @@ const App2 = () => {
       if (messageList.length === 0) console.log("no messages yet")
       setMessages(messageList)
     }
+    setLoading(false)
   }
 
   const loadBlockchainData = async () => {
+    setLoading(true)
     console.log("in loadBlockChainData")
     const web3 = window.web3
     // Load account
@@ -82,12 +87,19 @@ const App2 = () => {
       window.alert("Forum contract not deployed to detected network.")
     }
     console.log("end of loadblockchaindata")
+    setLoading(false)
   }
 
   const checkIfOwner = async () => {
-    const ownerAddress = await forum.methods.owner().call()
-    console.log(account)
-    setIsOwner(ownerAddress === account)
+    setLoading(true)
+    if (forum != null) {
+      console.log(forum)
+      const ownerAddress = await forum.methods.owner().call()
+      console.log(ownerAddress)
+      console.log(ownerAddress === account)
+      setIsOwner(ownerAddress === account)
+    }
+    setLoading(false)
   }
 
   // Use effect hook to fetch the messages when the component is mounted
@@ -95,13 +107,16 @@ const App2 = () => {
     ;(async () => {
       await loadWeb3()
       await loadBlockchainData()
-      console.log(forum)
-      // checkIfOwner();
     })()
   }, [])
 
   useEffect(() => {
     fetchMessages()
+    // checkIfOwner()
+  }, [forum])
+
+  useEffect(() => {
+    checkIfOwner()
   }, [forum])
 
   // Function to add a new message to the forum
@@ -109,71 +124,81 @@ const App2 = () => {
     // Check that the input value is not empty
     if (inputValue) {
       // Call the addMessage function in the contract with the input value
-      const response = await forum.methods
-        .addMessage("Test Type", inputValue)
-        .send({
-          from: account,
-        })
+      await forum.methods.addMessage("Test Type", inputValue).send({
+        from: account,
+      })
 
-      if (response) {
-        // Clear the input value
-        setInputValue("")
+      // Clear the input value
+      await setInputValue("")
 
-        // Fetch the updated list of messages
-        fetchMessages()
-      }
+      // Fetch the updated list of messages
+      await fetchMessages()
     }
   }
 
-  const addMember = async () => {}
+  const addMember = async () => {
+    if (newAdress) {
+      await forum.methods.setMembership(newAdress, true).send({
+        from: account,
+      })
+
+      await setNewAddress("")
+    }
+  }
 
   // Render the forum messages and input form
   return (
-    <div>
-      <div>
-        <Navbar account={account} />
-      </div>
-      <ul>
-        {messages.length != 0
-          ? messages.map((message) => (
-              <li key={message.timestamp}>
-                {message.author.toString()}: {message.content}
-              </li>
-            ))
-          : "no message"}
-      </ul>
-      <form>
-        {!isOwner ? (
-          <>
-            <label>
-              New Message:
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </label>
-            <button type="button" onClick={addMessage}>
-              Add Message
-            </button>{" "}
-          </>
-        ) : (
-          <>
-            <label>
-              Address to Add:
-              <input
-                type="text"
-                value={newAdress}
-                onChange={(e) => setNewAddress(e.target.value)}
-              />
-            </label>
-            <button type="button" onClick={addMessage}>
-              Add New Member
-            </button>
-          </>
-        )}
-      </form>
-    </div>
+    <>
+      {loading ? (
+        "Loading"
+      ) : (
+        <div>
+          <div style={{ margin: "50px" }}>
+            <Navbar account={account} />
+          </div>
+          <ul>
+            {messages.length != 0
+              ? messages.map((message) => (
+                  <li key={message.timestamp}>
+                    {message.author}: {message.content}
+                  </li>
+                ))
+              : "no message"}
+          </ul>
+          <form>
+            {!isOwner ? (
+              <>
+                <label>
+                  New Message:
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                  />
+                </label>
+                <button type="button" onClick={addMessage}>
+                  Add Message
+                </button>{" "}
+              </>
+            ) : (
+              <>
+                <label>
+                  Address to Add:
+                  <input
+                    type="text"
+                    value={newAdress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                  />
+                </label>
+                <button type="button" onClick={addMember}>
+                  Add New Member
+                </button>
+              </>
+            )}
+          </form>
+        </div>
+      )}
+    </>
   )
 }
 

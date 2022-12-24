@@ -4,7 +4,7 @@ contract UniversityForum {
     // Struct to represent a message
     struct Message {
         address author;
-        uint timestamp;
+        uint256 timestamp;
         string messageType;
         string content;
     }
@@ -22,7 +22,13 @@ contract UniversityForum {
     event MembershipVerified(bool membership);
 
     // Event to emit when a new message is added
-    event NewMessage(uint index, address author, uint timestamp, string messageType, string content);
+    event NewMessage(
+        uint256 index,
+        address author,
+        uint256 timestamp,
+        string messageType,
+        string content
+    );
 
     // Address of the contract owner
     address public owner;
@@ -31,7 +37,7 @@ contract UniversityForum {
     constructor() public {
         owner = msg.sender;
         messageCount = 0;
-        members[0xBdB85D44D34777aad8503D9eA604C3FE79867540] = true;
+        members[0x08843DA60a8A0461BB88790A48F3E5888F0E8e19] = true;
     }
 
     function verifyMembership(address user) public view returns (bool) {
@@ -42,22 +48,32 @@ contract UniversityForum {
     // Function to set the membership status of a given user
     function setMembership(address user, bool membership) public {
         // Only the contract owner can set membership status
-        require(msg.sender == owner, "Only the contract owner can set membership");
+        require(
+            msg.sender == owner,
+            "Only the contract owner can set membership"
+        );
 
         // Set the membership status
         members[user] = membership;
     }
 
     // Function to add a new message
-    function addMessage(string memory messageType, string memory content) public {
+    function addMessage(string memory messageType, string memory content)
+        public
+    {
         require(verifyMembership(msg.sender), "Only members can post messages");
 
         // Create a new message and add it to the array
-        Message memory newMessage = Message(msg.sender, now, messageType, content);
+        Message memory newMessage = Message(
+            msg.sender,
+            now,
+            messageType,
+            content
+        );
         messages.push(newMessage);
 
         // Emit event with message details
-        uint index = messages.length - 1;
+        uint256 index = messages.length - 1;
         messageCount = messageCount + 1;
         emit NewMessage(index, msg.sender, now, messageType, content);
     }
