@@ -1,12 +1,11 @@
-import React from "react";
+import React from 'react'
 
 const Navbar = ({ account }) => {
   return (
     <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
       <a
         className="navbar-brand col-sm-3 col-md-2 mr-0"
-        href="http://www.dappuniversity.com/bootcamp"
-        target="_blank"
+        href="http://localhost:3000/"
         rel="noopener noreferrer"
       >
         SU Forum
@@ -19,7 +18,7 @@ const Navbar = ({ account }) => {
         </li>
       </ul>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

@@ -37,7 +37,6 @@ contract UniversityForum {
     constructor() public {
         owner = msg.sender;
         messageCount = 0;
-        members[0x08843DA60a8A0461BB88790A48F3E5888F0E8e19] = true;
     }
 
     function verifyMembership(address user) public view returns (bool) {

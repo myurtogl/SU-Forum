@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react"
-import Web3 from "web3"
-import UniversityForum from "../abis/UniversityForum.json"
-import AddForm from "./AddForm"
-import Navbar from "./Navbar"
-import Messages from "./Messages"
+import React, { useState, useEffect } from 'react'
+import Web3 from 'web3'
+import UniversityForum from '../abis/UniversityForum.json'
+import AddForm from './AddForm'
+import Navbar from './Navbar'
+import Messages from './Messages'
 
 const App = () => {
   const [messages, setMessages] = useState([])
-  const [inputValue, setInputValue] = useState("")
+  const [inputValue, setInputValue] = useState('')
   const [forum, setForum] = useState(null)
   const [account, setAccount] = useState(null)
   const [messageCount, setMessageCount] = useState(0)
@@ -16,7 +16,7 @@ const App = () => {
 
   const loadWeb3 = async () => {
     setLoading(true)
-    console.log("in loadWeb3")
+    console.log('in loadWeb3')
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum)
       await window.ethereum.enable()
@@ -24,10 +24,10 @@ const App = () => {
       window.web3 = new Web3(window.web3.currentProvider)
     } else {
       window.alert(
-        "Non-Ethereum browser detected. You should consider trying MetaMask!"
+        'Non-Ethereum browser detected. You should consider trying MetaMask!',
       )
     }
-    console.log("end of loadWeb3")
+    console.log('end of loadWeb3')
   }
 
   const fetchMessages = async () => {
@@ -40,7 +40,7 @@ const App = () => {
         const message = await forum.methods.messages(i).call()
         messageList.push(message)
       }
-      if (messageList.length === 0) console.log("no messages yet")
+      if (messageList.length === 0) console.log('no messages yet')
       setMessages(messageList)
     }
     setLoading(false)
@@ -48,7 +48,7 @@ const App = () => {
 
   const loadBlockchainData = async () => {
     setLoading(true)
-    console.log("in loadBlockChainData")
+    console.log('in loadBlockChainData')
     const web3 = window.web3
     // Load account
     const accounts = await web3.eth.getAccounts()
@@ -58,7 +58,7 @@ const App = () => {
     if (networkData) {
       const forumInstance = await web3.eth.Contract(
         UniversityForum.abi,
-        networkData.address
+        networkData.address,
       )
       setForum(forumInstance)
       await console.log(forumInstance)
@@ -73,9 +73,9 @@ const App = () => {
       }
       setMessages(messageList)
     } else {
-      window.alert("Forum contract not deployed to detected network.")
+      window.alert('Forum contract not deployed to detected network.')
     }
-    console.log("end of loadblockchaindata")
+    console.log('end of loadblockchaindata')
     setLoading(false)
   }
 
@@ -108,13 +108,20 @@ const App = () => {
 
   const addMessage = async () => {
     if (inputValue) {
-      await forum.methods.addMessage("Test Type", inputValue).send({
+      await forum.methods.addMessage('Test Type', inputValue).send({
         from: account,
       })
 
-      setInputValue("")
+      console.log('buradayız')
 
-      fetchMessages()
+      forum.on('NewMessage', (index, sender, time, type, content) => {
+        console.log(index, sender, time, type, content)
+      })
+      // setInputValue('')
+
+      // let newMessage = await forum.methods.messages(messageCount).call()
+      // let newMessages = [...messages, newMessage]
+      // setMessages(newMessages)
     }
   }
 
@@ -124,20 +131,19 @@ const App = () => {
         from: account,
       })
 
-      await setInputValue("")
+      setInputValue('')
     }
   }
 
   return (
     <>
       {loading ? (
-        "Loading"
+        'Loading'
       ) : (
         <div>
-          <div style={{ margin: "50px" }}>
+          <div style={{ margin: '50px' }}>
             <Navbar account={account} />
           </div>
-          <Messages loading={loading} messages={messages} />
           <AddForm
             loading={loading}
             inputValue={inputValue}
@@ -146,6 +152,7 @@ const App = () => {
             addMessage={addMessage}
             isOwner={isOwner}
           />
+          <Messages loading={loading} messages={messages} />
         </div>
       )}
     </>
