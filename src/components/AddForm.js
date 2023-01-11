@@ -12,35 +12,25 @@ const AddForm = ({
   return (
     <div style={{ margin: '20px' }}>
       <form>
-        {!isOwner ? (
-          <>
-            <label>
-              New Message:
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </label>
+        <>
+          <label>
+            {isOwner ? 'Address to Add:' : 'New Message:'}
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+            />
+          </label>
+          {isOwner ? (
             <button type="button" onClick={addMessage}>
-              Add Message
-            </button>{' '}
-          </>
-        ) : (
-          <>
-            <label>
-              Address to Add:
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </label>
-            <button type="button" onClick={addMember}>
-              Add New Member
+              Add Member
             </button>
-          </>
-        )}
+          ) : (
+            <button type="button" onClick={addMember}>
+              Add Message
+            </button>
+          )}
+        </>
       </form>
     </div>
   )
