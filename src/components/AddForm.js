@@ -22,11 +22,11 @@ const AddForm = ({
             />
           </label>
           {isOwner ? (
-            <button type="button" onClick={addMessage}>
+            <button type="button" onClick={addMember}>
               Add Member
             </button>
           ) : (
-            <button type="button" onClick={addMember}>
+            <button type="button" onClick={addMessage}>
               Add Message
             </button>
           )}
