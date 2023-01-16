@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Navbar = ({ account }) => {
+const Navbar = ({ account, setModalEnabled }) => {
   return (
     <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
       <a
@@ -14,6 +14,9 @@ const Navbar = ({ account }) => {
         <li className="nav-item text-nowrap d-none d-sm-none d-sm-block">
           <small className="text-white">
             <span id="account">{account}</span>
+          </small>
+          <small>
+            <button onClick={() => setModalEnabled(true)}> Register </button>
           </small>
         </li>
       </ul>

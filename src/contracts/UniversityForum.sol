@@ -3,6 +3,7 @@ pragma solidity ^0.5.0;
 contract UniversityForum {
     // Struct to represent a message
     struct Message {
+        uint256 index;
         address author;
         uint256 timestamp;
         string messageType;
@@ -61,19 +62,25 @@ contract UniversityForum {
         public
     {
         require(verifyMembership(msg.sender), "Only members can post messages");
-
+        uint256 index;
+        if (messages.length != 0) {
+            index = messages.length;
+        }
+        else {
+            index = 0;
+        }
         // Create a new message and add it to the array
         Message memory newMessage = Message(
+            index,
             msg.sender,
             now,
             messageType,
             content
         );
         messages.push(newMessage);
-
-        // Emit event with message details
-        uint256 index = messages.length - 1;
         messageCount = messageCount + 1;
+        
+        // Emit event with message details
         emit NewMessage(index, msg.sender, now, messageType, content);
     }
 }

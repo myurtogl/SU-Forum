@@ -52,9 +52,9 @@ contract('UniversityForum', (accounts) => {
       .then(async () => {
         // Check that the message was added correctly
         await instance.messages.call(0).then(async (result) => {
-          assert.equal(result[0], accounts[0], 'Incorrect author for message')
-          assert.equal(result[2], messageType, 'Incorrect type for message')
-          assert.equal(result[3], content, 'Incorrect content for message')
+          assert.equal(result[1], accounts[0], 'Incorrect author for message')
+          assert.equal(result[3], messageType, 'Incorrect type for message')
+          assert.equal(result[4], content, 'Incorrect content for message')
         })
       })
   })

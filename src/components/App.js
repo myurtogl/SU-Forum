@@ -1,33 +1,83 @@
 import React, { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
+import './App.css'
 import axios from 'axios'
-import Navbar from './Navbar'
+import Popup from 'reactjs-popup'
+import NavigationBar from './NavigationBar'
 import AddForm from './AddForm'
 import Messages from './Messages'
-import Register from './Register'
 import UniversityForum from '../abis/UniversityForum.json'
+import RegisterModal from './RegisterModal'
+import Container from 'react-bootstrap/Container'
+import Col from 'react-bootstrap/Col'
+import Row from 'react-bootstrap/Row'
+
 /* global BigInt */
 const App = () => {
-  const [account, setAccount] = useState()
+  const [contract, setContract] = useState(null)
+  const [contractWithSigner, setContractWithSigner] = useState(null)
+  const [account, setAccount] = useState(null)
   const [loading, setLoading] = useState(true)
   const [messageCount, setMessageCount] = useState(0)
   const [messages, setMessages] = useState([])
   const [isOwner, setIsOwner] = useState(false)
+  const [isMember, setIsMember] = useState(false)
   const [inputValue, setInputValue] = useState('')
+  const [signature, setSignature] = useState({})
+  const [modalEnabled, setModalEnabled] = useState(false)
 
   // Declarations for Provider, Signer and Contract
   const provider = new ethers.providers.Web3Provider(window.ethereum)
   const signer = provider.getSigner()
   const ABI = UniversityForum.abi
-  const contractAddress = '0xA1D2964e133987eff2FB1bBd5AB60A6e25342927'
-  const contract = new ethers.Contract(contractAddress, ABI, provider)
-  const contractWithSigner = contract.connect(signer)
+  // const contractAddress = '0x25371D810d6c87f3Bda407c5dDB641d0C5A78858'
+  // const contract = new ethers.Contract(contractAddress, ABI, provider)
+  // const contractWithSigner = contract.connect(signer)
+
+  const SIGN_URL = 'http://127.0.0.1:5000'
+  const CONTRACT_URL = 'http://127.0.0.1:8000'
+
+  // useEffect(() => {
+  //   console.log(provider)
+  //   console.log(signer)
+  //   console.log(ABI)
+  //   // console.log(contract)
+  //   const connectWallet = async () => {
+  //     await provider
+  //       .send('eth_requestAccounts', [])
+  //       .catch((err) => console.error(err))
+
+  //     const signerAddress = await signer.getAddress()
+  //     setAccount(signerAddress)
+  //   }
+  //   connectWallet()
+  //   checkIfOwner()
+  //   fetchMessages()
+  // }, [])
 
   useEffect(() => {
     console.log(provider)
     console.log(signer)
     console.log(ABI)
-    console.log(contract)
+
+    const contractSetup = async () => {
+      let addr
+      await axios
+        .get(`${CONTRACT_URL}/contractAddress`)
+        .then((response) => {
+          console.log(response)
+          addr = response.data.addr
+        })
+        .catch((error) => {
+          console.error(error.toString())
+        })
+
+      const contractInstance = new ethers.Contract(addr, ABI, provider)
+      const contractWithSigner = contractInstance.connect(signer)
+      setContract(contractInstance)
+      setContractWithSigner(contractWithSigner)
+    }
+
     const connectWallet = async () => {
       await provider
         .send('eth_requestAccounts', [])
@@ -36,22 +86,58 @@ const App = () => {
       const signerAddress = await signer.getAddress()
       setAccount(signerAddress)
     }
-    connectWallet()
-    checkIfOwner()
-    fetchMessages()
+
+    contractSetup().catch(console.error)
+    connectWallet().catch(console.error)
   }, [])
 
-  const fetchMessages = async () => {
-    setLoading(true)
-    const messageNum = await contract.messageCount()
-    const newMessageCount = messageNum - messageCount
-    let messageList = []
-    for (let i = 0; i < newMessageCount; i++) {
-      const message = await contract.messages(messageCount + i)
-      messageList.push(message)
+  useEffect(() => {
+    if (contract != null) {
+      console.log(contract)
+      checkIfOwner()
+      checkIfMember()
+      fetchMessages()
     }
-    setMessages((lst) => lst.concat(messageList))
-    setMessageCount(messageNum)
+  }, [contract])
+
+  useEffect(() => {
+    if (Object.keys(signature).length !== 0) {
+      registerRequest(
+        signature.msg,
+        signature.c_0,
+        signature.r,
+        signature.K_tilde,
+      )
+    } else console.log('signature empty')
+  }, [signature])
+
+  const fetchMessages = async () => {
+    if (contract) {
+      setLoading(true)
+      const messageNum = await contract.messageCount()
+      if (messageNum === 0) {
+        setMessages([])
+        setMessageCount(0)
+      } else {
+        const newMessageCount = messageNum - messageCount
+        let messageList = []
+        for (let i = 0; i < newMessageCount; i++) {
+          const message = await contract.messages(messageCount + i)
+          messageList.push(message)
+        }
+        messageList = messageList.reverse()
+        setMessages((lst) => messageList.concat(lst))
+        setMessageCount(messageNum)
+        setLoading(false)
+      }
+    }
+  }
+
+  const checkIfMember = async () => {
+    setLoading(true)
+    const address = await signer.getAddress()
+    const isMemberResult = await contract.verifyMembership(address)
+    setIsMember(isMemberResult)
     setLoading(false)
   }
 
@@ -75,17 +161,16 @@ const App = () => {
     } else alert('Input Value is empty!')
   }
 
-  const addMessage = async () => {
-    if (inputValue) {
-      const transaction = await contractWithSigner.addMessage(
-        'test',
-        inputValue,
-      )
+  const addMessage = async (type, msg) => {
+    console.log(contract)
+    if (isMember) {
+      const transaction = await contractWithSigner.addMessage(type, msg)
       await transaction.wait()
       console.log(transaction)
       fetchMessages()
-      setInputValue('')
-    } else alert('Input Value is empty!')
+    } else alert('You are not a member of this forum. Please, register first.')
+
+    setInputValue('')
   }
 
   const register = async (privateKey, address) => {
@@ -93,61 +178,69 @@ const App = () => {
     console.log(address)
     const idx = 2
 
-    await getSignature(
-      'selam',
-      '0027ba1cc197678fa3b69865535e6023152bad7f82fd012cc20a86d4948e7a4e',
-      idx,
-    )
-
-    const request = {
-      K_tilde:
-        '[(55426341485918476906170035992944148906219761582507165538201410116487957527718, 20586083010784988057457386197792358001942361811237330056018592710920317210240)]',
-      c_0:
-        '4842384702496556302515187062466450023218645563105811222284652109016829861986',
-      msg: 'selam',
-      r: [
-        '5148724026768610701799265676884737182332073160329502523277962976317487468373',
-        '3803540293713155252320460933568732555970802853665299402495218706543748860674',
-        '136097904434831696336672199276016954337763696944433523741885610195953560550',
-        '7133227941731140806391197775520788136492488882143328714444094129798549068209',
-        '5895088749754118334120528653984716427587879177996198146824245794198832162055',
-      ],
-    }
-
-    getVerification(request.msg, request.c_0, request.r, request.K_tilde)
+    await getSignature(address, privateKey, idx)
   }
 
   const getSignature = async (addr, pk, idx) => {
-    const BASE_URL = 'http://127.0.0.1:5000'
-    const privateKey = BigInt('0x' + pk)
     await axios
-      .post(`${BASE_URL}/sign`, {
+      .post(`${SIGN_URL}/sign`, {
         msg: addr,
         pk: pk,
         idx: idx,
       })
       .then((response) => {
         console.log(response.data)
+        const msg = response.data.msg
+        const c_0 = BigInt(response.data.c_0)
+        const r = response.data.r.map((str) => BigInt(str))
+        const K_tilde = response.data.K_tilde
+        const signature = {
+          msg: msg,
+          c_0: c_0,
+          r: r,
+          K_tilde: K_tilde,
+        }
+        console.log(signature)
+        setSignature(signature)
       })
       .catch((error) => {
         console.log(error)
       })
   }
 
-  const getVerification = (msg, c_0, r, K_tilde) => {
-    const BASE_URL = 'http://127.0.0.1:5000'
+  const registerRequest = (msg, c_0, r, K_tilde) => {
+    console.log('in registerrequest')
+    const r_par = r.map((num) => num.toString())
     axios
-      .post(`${BASE_URL}/verify`, {
+      .post(`${CONTRACT_URL}/register`, {
         msg: msg,
-        c_0: c_0,
-        r: r,
+        c_0: c_0.toString(),
+        r: r_par,
         K_tilde: K_tilde,
       })
       .then((response) => {
         console.log(response.data)
       })
       .catch((error) => {
-        console.log(error)
+        console.error(error.toString())
+      })
+  }
+
+  const getVerification = (msg, c_0, r, K_tilde) => {
+    console.log('in getVerification')
+    const r_par = r.map((num) => num.toString())
+    axios
+      .post(`${SIGN_URL}/verify`, {
+        msg: msg,
+        c_0: c_0.toString(),
+        r: r_par,
+        K_tilde: K_tilde,
+      })
+      .then((response) => {
+        console.log(response.data)
+      })
+      .catch((error) => {
+        console.error(error.toString())
       })
   }
 
@@ -156,21 +249,34 @@ const App = () => {
       {loading ? (
         'Loading'
       ) : (
-        <div>
-          <div style={{ margin: '50px' }}>
-            <Navbar account={account} />
-          </div>
-          <AddForm
-            loading={loading}
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            addMember={addMember}
-            addMessage={addMessage}
-            isOwner={isOwner}
+        <>
+          <NavigationBar
+            setModalEnabled={setModalEnabled}
+            account={account}
+            styles={{ 'margin-bottom': '50px' }}
           />
-          <Messages loading={loading} messages={messages} />
-          <Register loading={loading} register={register} />
-        </div>
+          <div class="split left main">
+            <Messages loading={loading} messages={messages} />
+          </div>
+
+          <div class="split right main">
+            <AddForm
+              loading={loading}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              addMember={addMember}
+              addMessage={addMessage}
+              isOwner={isOwner}
+            />
+          </div>
+
+          <RegisterModal
+            show={modalEnabled}
+            onRegister={register}
+            onHide={() => setModalEnabled(false)}
+            account={account}
+          />
+        </>
       )}
     </>
   )
