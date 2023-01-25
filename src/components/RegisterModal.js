@@ -9,10 +9,11 @@ const RegisterModal = (props) => {
   const [checked, setChecked] = React.useState(false)
 
   const handleSubmit = () => {
-    const pk = privateKeyRef.current.value
-    const addr = addressRef.current.value
+    let pk = privateKeyRef.current.value
+    let addr = addressRef.current.value
 
-    if (pk != '' && addr != '') {
+    if (pk != '' && (addr != '' || checked)) {
+      if (checked) addr = props.account
       props.onRegister(pk, addr)
       props.onHide()
     } else {

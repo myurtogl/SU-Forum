@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button'
 import MessageCard from './MessageCard'
 
 /* global BigInt */
-const Messages = ({ loading, messages }) => {
+const Messages = ({ loading, messages, addComment }) => {
   const fromEpochToDate = (epoch) => {
     return new Date(epoch * 1000).toLocaleString()
   }
@@ -18,10 +18,11 @@ const Messages = ({ loading, messages }) => {
                 author={message.author}
                 date={fromEpochToDate(Number(message.timestamp._hex))}
                 index={message.index}
+                addComment={addComment}
               />
             </>
           ))
-        : 'no message'}
+        : 'There is no message yet!'}
     </ul>
   )
 }

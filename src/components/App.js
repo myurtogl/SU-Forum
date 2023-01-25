@@ -11,6 +11,7 @@ import RegisterModal from './RegisterModal'
 import Container from 'react-bootstrap/Container'
 import Col from 'react-bootstrap/Col'
 import Row from 'react-bootstrap/Row'
+import Alert from 'react-bootstrap/Alert'
 
 /* global BigInt */
 const App = () => {
@@ -20,10 +21,12 @@ const App = () => {
   const [loading, setLoading] = useState(true)
   const [messageCount, setMessageCount] = useState(0)
   const [messages, setMessages] = useState([])
+  const [commentCount, setCommentCount] = useState(0)
+  const [comments, setComments] = useState([])
   const [isOwner, setIsOwner] = useState(false)
-  const [isMember, setIsMember] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [signature, setSignature] = useState({})
+  const [registered, setRegistered] = useState(false)
   const [modalEnabled, setModalEnabled] = useState(false)
 
   // Declarations for Provider, Signer and Contract
@@ -35,7 +38,7 @@ const App = () => {
   // const contractWithSigner = contract.connect(signer)
 
   const SIGN_URL = 'http://127.0.0.1:5000'
-  const CONTRACT_URL = 'http://127.0.0.1:8000'
+  const CONTRACT_URL = 'http://127.0.0.1:2000'
 
   // useEffect(() => {
   //   console.log(provider)
@@ -95,8 +98,8 @@ const App = () => {
     if (contract != null) {
       console.log(contract)
       checkIfOwner()
-      checkIfMember()
       fetchMessages()
+      // fetchComments()
     }
   }, [contract])
 
@@ -110,6 +113,28 @@ const App = () => {
       )
     } else console.log('signature empty')
   }, [signature])
+
+  // const fetchMessages = async () => {
+  //   if (contract) {
+  //     setLoading(true)
+  //     const messageNum = await contract.messageCount()
+  //     if (messageNum === 0) {
+  //       setMessages([])
+  //       setMessageCount(0)
+  //     } else {
+  //       const newMessageCount = messageNum - messageCount
+  //       let messageList = []
+  //       for (let i = 0; i < newMessageCount; i++) {
+  //         const message = await contract.messages(messageCount + i)
+  //         messageList.push(message)
+  //       }
+  //       messageList = messageList.reverse()
+  //       setMessages((lst) => messageList.concat(lst))
+  //       setMessageCount(messageNum)
+  //       setLoading(false)
+  //     }
+  //   }
+  // }
 
   const fetchMessages = async () => {
     if (contract) {
@@ -125,7 +150,6 @@ const App = () => {
           const message = await contract.messages(messageCount + i)
           messageList.push(message)
         }
-        messageList = messageList.reverse()
         setMessages((lst) => messageList.concat(lst))
         setMessageCount(messageNum)
         setLoading(false)
@@ -133,13 +157,39 @@ const App = () => {
     }
   }
 
-  const checkIfMember = async () => {
-    setLoading(true)
-    const address = await signer.getAddress()
-    const isMemberResult = await contract.verifyMembership(address)
-    setIsMember(isMemberResult)
-    setLoading(false)
+  const fetchComments = async () => {
+    if (contract) {
+      console.log('in fetchcomments')
+      setLoading(true)
+      const commentNum = await contract.commentCount()
+      if (commentCount === 0) {
+        const commentList = new Array(messageCount)
+        setComments(commentList)
+        setCommentCount(0)
+      } else {
+        const newCommentCount = commentNum - commentCount
+        let commentList = comments
+        for (let i = 0; i < newCommentCount; i++) {
+          const comment = await contract.comments(commentCount + i)
+          if (commentList[comment.referenceIdx] == null) {
+            commentList[comment.referenceIdx] = [comment]
+          } else commentList[comment.referenceIdx].push(comment)
+        }
+        setComments(commentList)
+        setCommentCount(commentCount)
+        setLoading(false)
+      }
+      console.log(comments)
+    }
   }
+
+  // const checkIfMember = async () => {
+  //   setLoading(true)
+  //   const address = await signer.getAddress()
+  //   const isMemberResult = await contract.verifyMembership(address)
+  //   setIsMember(isMemberResult)
+  //   setLoading(false)
+  // }
 
   const checkIfOwner = async () => {
     setLoading(true)
@@ -162,8 +212,8 @@ const App = () => {
   }
 
   const addMessage = async (type, msg) => {
-    console.log(contract)
-    if (isMember) {
+    const isMemberResult = await contract.verifyMembership(account)
+    if (isMemberResult) {
       const transaction = await contractWithSigner.addMessage(type, msg)
       await transaction.wait()
       console.log(transaction)
@@ -173,35 +223,46 @@ const App = () => {
     setInputValue('')
   }
 
+  const addComment = async (idx, msg) => {
+    console.log('in addcomment')
+    const isMemberResult = await contract.verifyMembership(account)
+    if (isMemberResult) {
+      const transaction = await contractWithSigner.addComment(idx, msg)
+      await transaction.wait()
+      console.log(transaction)
+      fetchComments()
+    } else alert('You are not a member of this forum. Please, register first.')
+  }
+
   const register = async (privateKey, address) => {
     console.log(privateKey)
     console.log(address)
-    const idx = 2
 
-    await getSignature(address, privateKey, idx)
+    await getSignature(address, privateKey)
   }
 
-  const getSignature = async (addr, pk, idx) => {
+  const getSignature = async (addr, pk) => {
     await axios
       .post(`${SIGN_URL}/sign`, {
         msg: addr,
         pk: pk,
-        idx: idx,
       })
       .then((response) => {
-        console.log(response.data)
-        const msg = response.data.msg
-        const c_0 = BigInt(response.data.c_0)
-        const r = response.data.r.map((str) => BigInt(str))
-        const K_tilde = response.data.K_tilde
-        const signature = {
-          msg: msg,
-          c_0: c_0,
-          r: r,
-          K_tilde: K_tilde,
-        }
-        console.log(signature)
-        setSignature(signature)
+        if (response.data.result == true) {
+          console.log(response.data)
+          const msg = response.data.msg
+          const c_0 = BigInt(response.data.c_0)
+          const r = response.data.r.map((str) => BigInt(str))
+          const K_tilde = response.data.K_tilde
+          const signature = {
+            msg: msg,
+            c_0: c_0,
+            r: r,
+            K_tilde: K_tilde,
+          }
+          console.log(signature)
+          setSignature(signature)
+        } else alert('Key you are using is not valid. Please try again.')
       })
       .catch((error) => {
         console.log(error)
@@ -220,6 +281,9 @@ const App = () => {
       })
       .then((response) => {
         console.log(response.data)
+        alert(
+          `You are registered to the forum successfully with the address ${account}`,
+        )
       })
       .catch((error) => {
         console.error(error.toString())
@@ -249,7 +313,7 @@ const App = () => {
       {loading ? (
         'Loading'
       ) : (
-        <>
+        <div className="mainBody" style={{ backgroundColor: 'red' }}>
           <NavigationBar
             setModalEnabled={setModalEnabled}
             account={account}
@@ -276,7 +340,7 @@ const App = () => {
             onHide={() => setModalEnabled(false)}
             account={account}
           />
-        </>
+        </div>
       )}
     </>
   )

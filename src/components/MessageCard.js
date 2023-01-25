@@ -1,38 +1,64 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Card from 'react-bootstrap/Card'
 import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
+const MessageCard = ({ message, author, date, index, addComment }) => {
+  const [commentField, setCommentField] = useState(false)
+  const [comment, setComment] = useState('')
 
-const MessageCard = ({ message, author, date, index }) => {
+  const handleComment = () => {
+    if (comment !== '') {
+      addComment(index, comment)
+    }
+  }
+
   return (
     <>
       <Card
-        bg={'dark'}
-        key={'dark'}
-        text={'white'}
-        style={{ width: '40rem' }}
+        text={'black'}
+        style={{
+          width: '%40',
+          borderRadius: '2rem ',
+          margin: 'auto',
+          background: '#86b3d1',
+        }}
         className="mb-2"
       >
         <Card.Header>{author}</Card.Header>
         <Card.Body>
           <Card.Text>{message}</Card.Text>
           <Card.Text className="text-muted">
-            {date}{' '}
+            {date}
             <Button
               key={index}
-              onClick={() => console.log('commented ' + index)}
+              variant="outline-dark"
+              style={{ float: 'right' }}
+              onClick={() => setCommentField((state) => !state)}
             >
-              Comment
+              {commentField ? 'Cancel' : 'Comment'}
             </Button>
           </Card.Text>
-          {/* <Card.Footer className="text-muted">
-            <Button
-              key={index}
-              onClick={() => console.log('commented ' + index)}
-            >
-              Comment
-            </Button>
-          </Card.Footer> */}
         </Card.Body>
+        {commentField ? (
+          <Card.Footer>
+            <Form>
+              <Form.Group
+                className="mb-3"
+                controlId="exampleForm.ControlInput1"
+              >
+                {/* <Form.Label>Comment</Form.Label> */}
+                <Form.Control
+                  type="text"
+                  placeholder="Enter Comment"
+                  // onChange={e => e.}
+                />
+              </Form.Group>
+            </Form>
+            <Button variant="outline-dark" style={{ float: 'right' }}>
+              Send
+            </Button>
+          </Card.Footer>
+        ) : null}
       </Card>
     </>
   )

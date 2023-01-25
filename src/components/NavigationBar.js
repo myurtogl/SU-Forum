@@ -3,6 +3,7 @@ import Container from 'react-bootstrap/Container'
 import Navbar from 'react-bootstrap/Navbar'
 import Image from 'react-bootstrap/Image'
 import Button from 'react-bootstrap/Button'
+import './App.css'
 
 const NavigationBar = ({ account, setModalEnabled }) => {
   return (
@@ -10,8 +11,9 @@ const NavigationBar = ({ account, setModalEnabled }) => {
       <Navbar
         collapseOnSelect
         expand="true"
-        bg="primary"
+        // bg="primary"
         // className="navbar"
+        style={{ background: '#99CED3' }}
         variant="dark"
         fixed="top"
       >
@@ -19,11 +21,16 @@ const NavigationBar = ({ account, setModalEnabled }) => {
 
         <Navbar.Brand
           href="http://localhost:3000/"
-          style={{ display: 'flex', alignItems: 'center', color: 'orange' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            color: '#4D6D9A',
+            fontWeight: '700',
+          }}
         >
           {' '}
           <Image
-            src="./favicon.ico "
+            src="./favicon.ico"
             thumbnail="true"
             style={{
               marginRight: '10px',
@@ -38,14 +45,20 @@ const NavigationBar = ({ account, setModalEnabled }) => {
             <small className="text-white">
               <span
                 id="account"
-                style={{ fontSize: '16px', marginRight: '20px' }}
+                style={{
+                  fontSize: '16px',
+                  marginRight: '20px',
+                  color: '#4D6D9A',
+                  fontWeight: '600',
+                }}
               >
                 {account}
               </span>
             </small>
             <small>
               <Button
-                variant="outline-light"
+                variant="outline-dark"
+                // styles={{ background,: '#EDB5BF' }}
                 onClick={() => setModalEnabled(true)}
               >
                 Register
