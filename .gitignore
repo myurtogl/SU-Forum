@@ -1,1 +1,8 @@
-node_modules
+./ClientSide/node_modules
+./ClientSide/.vscode
+./ClientSide/package-lock
+./ContractOwner/__pycache__
+./ContractOwner/myenv
+./RingSigning/__pycache__
+./RingSigning/myenv
+
