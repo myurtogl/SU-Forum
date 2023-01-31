@@ -1,6 +1,6 @@
 
 # SU-Forum
-A university forum implementation on Ethereum blockchain
+A university forum implementation by using Ethereum smart contracts
 
 ### Table of contents
 
@@ -18,10 +18,7 @@ This is a term project for our Blockchain course at Sabanci University. The proj
 
 ### Motivation
 Anonymity on the internet is an important concept for various reasons such as identity protection, the need for privacy in sensitive issues, freedom of expression, etc. But at the same time, it can create a problem with bot accounts, especially on social
-media. As an example, we are living in a time the perception of individuals by society is mostly shaped by the discussions on social media. It can be seen what is the problem here. One can create and control hundreds, thousands, and millions of accounts for a purpose and manipulate any discussion, which is happening in big social media platforms like Twitter. Therefore, we need mechanisms for obtaining ‘anonymous but verifiable’
-platforms. Our team believes that this can be possible with ‘Decentralized identities’, also
-referred to as DIDs, with the support of blockchain technologies. This situation is also
-applicable to smaller communities such as university forums.
+media. As an example, we are living in a time the perception of individuals by society is mostly shaped by the discussions on social media. It can be seen what is the problem here. One can create and control hundreds, thousands, and millions of accounts for a purpose and manipulate any discussion, which is happening in big social media platforms like Twitter. Therefore, we need mechanisms for obtaining ‘anonymous but verifiable’ platforms. Our team believes that this can be possible with ‘Decentralized identities’, also referred to as DIDs, with the support of blockchain technologies. This situation is also applicable to smaller communities such as university forums.
 
 ### Functionalities
 - Registering: New users can register to the system if they are a member of the Sabanci University. Check for details for that in the next section.
